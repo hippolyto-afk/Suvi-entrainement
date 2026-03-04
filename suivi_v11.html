@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Suivi Périostite</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Périostite">
+<meta name="theme-color" content="#080e1a">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Suivi Périostite&quot;,&quot;short_name&quot;:&quot;Périostite&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#080e1a&quot;,&quot;theme_color&quot;:&quot;#080e1a&quot;,&quot;start_url&quot;:&quot;./&quot;}">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,500;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#080e1a;--bg2:#0d1626;--bg3:#111e33;--card:#13213a;--border:#1a3050;
+  --text:#dce8f5;--muted:#4a6a8a;--faint:#1f3555;
+  --green:#22d17a;--green-bg:#0a2e1c;
+  --orange:#ff8c42;--orange-bg:#2a1200;
+  --red:#ff4444;--red-bg:#2a0808;
+  --blue:#4da6ff;--blue-dim:#1a3a6a;
+  --purple:#9b7cff;
+  --teal:#2de0c0;
+  --steel:#7eb8d4;--steel-bg:#0d2030;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding:0;overscroll-behavior:none;}
+.app{max-width:480px;margin:0 auto;position:relative;}
+
+/* ── TOP BAR ── */
+.topbar{padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;}
+.topbar-date{font-size:.72rem;font-weight:500;color:var(--muted);font-family:var(--mono);}
+
+/* ── BOTTOM NAV ── */
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,14,26,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);z-index:100;padding:6px 8px max(10px,env(safe-area-inset-bottom));}
+.nav-inner{display:flex;gap:2px;max-width:480px;margin:0 auto;}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;padding:8px 2px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:var(--font);transition:all .2s;}
+.nav-btn .ni{font-size:1.1rem;line-height:1;}
+.nav-btn .nl{font-size:.48rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.nav-btn.active{color:var(--blue);background:var(--blue-dim);}
+
+/* ── CONTENT ── */
+.content{padding:12px 12px calc(80px + env(safe-area-inset-bottom));}
+.section{display:none;animation:fadeIn .2s ease;}
+.section.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.card-title{font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;}
+
+/* ── RULE BOX ── */
+.rulebox{background:linear-gradient(135deg,#0a1e3a,#0d2040);border:1px solid #1e4080;border-radius:16px;padding:14px;margin-bottom:12px;}
+.rulebox p{font-size:.8rem;line-height:1.7;color:#7ab0e0;}
+.rulebox strong{color:#a8d4ff;}
+
+/* ── OPTIONS ── */
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.opt{padding:9px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:600;font-family:var(--font);transition:all .15s;min-height:38px;}
+.opt:active{transform:scale(.96);}
+.opt.sg{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.opt.so{border-color:var(--orange);background:var(--orange-bg);color:var(--orange);}
+.opt.sr{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+.opt.sb{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.q-label{font-size:.8rem;color:#7ab0e0;margin-bottom:6px;font-weight:500;}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:14px;border-radius:14px;border:none;font-size:.9rem;font-weight:800;cursor:pointer;margin-top:8px;font-family:var(--font);transition:all .15s;min-height:46px;}
+.btn:active{transform:scale(.98);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-ghost{background:var(--bg3);color:var(--muted);font-size:.8rem;padding:10px;border:1px solid var(--border);}
+.btn-green{background:var(--green);color:#04120a;}
+.btn-red{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);}
+
+/* ── RESULT ── */
+.result{border-radius:14px;padding:14px;margin-top:10px;display:none;}
+.result.green{background:var(--green-bg);border:1.5px solid var(--green);}
+.result.orange{background:var(--orange-bg);border:1.5px solid var(--orange);}
+.result.red{background:var(--red-bg);border:1.5px solid var(--red);}
+.res-title{font-size:.95rem;font-weight:800;margin-bottom:6px;}
+.result.green .res-title{color:var(--green);}
+.result.orange .res-title{color:var(--orange);}
+.result.red .res-title{color:var(--red);}
+.res-body{font-size:.82rem;line-height:1.75;color:var(--text);}
+.res-body ul{padding-left:14px;margin-top:4px;}
+.res-body li{margin-bottom:3px;}
+
+/* ── PROGRESS BAR ── */
+.pbar{background:var(--faint);border-radius:99px;height:5px;overflow:hidden;margin:8px 0;}
+.pfill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#16a34a);transition:width .4s;}
+
+/* ── RENFO GRID ── */
+.renfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.ri{background:var(--bg2);border-radius:14px;padding:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;}
+.ri.done{border-color:var(--green);background:var(--green-bg);}
+.ri-title{font-size:.82rem;font-weight:700;color:var(--blue);display:flex;justify-content:space-between;margin-bottom:3px;}
+.ri.done .ri-title{color:var(--green);}
+.ri-sub{font-size:.7rem;color:var(--muted);}
+.ri.done .ri-sub{color:#2a8a50;}
+
+/* ── CHECKLIST (RENFO SPÉ) ── */
+.chk{background:var(--bg2);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;min-height:44px;transition:all .15s;}
+.chk:active{transform:scale(.98);}
+.chk.done{border-color:var(--green);background:var(--green-bg);}
+.chk-t{font-size:.8rem;color:#7ab0e0;padding-right:8px;line-height:1.4;}
+.chk.done .chk-t{color:var(--green);}
+
+/* ── TIMER ── */
+.timer-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tbox{background:var(--bg2);border-radius:14px;padding:12px;border:1.5px solid var(--border);text-align:center;}
+.tbox h4{font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:8px;}
+.tdisp{font-size:2.4rem;font-weight:900;color:var(--blue);font-family:var(--mono);margin-bottom:8px;line-height:1;}
+.tdisp.run{color:var(--green);}.tdisp.done-t{color:var(--orange);}
+.tbtns{display:flex;gap:5px;justify-content:center;}
+.tbtn{padding:8px 16px;border-radius:10px;border:none;cursor:pointer;font-size:.82rem;font-weight:700;font-family:var(--font);min-height:36px;}
+.tbtn-go{background:var(--blue);color:#fff;}.tbtn-rst{background:var(--bg3);color:var(--muted);}
+
+/* ── ANALOG PAIN SLIDER ── */
+.pain-block{margin-bottom:18px;}
+.pain-label{font-size:.8rem;font-weight:600;color:#7ab0e0;margin-bottom:10px;display:block;}
+.pain-track-wrap{position:relative;height:36px;display:flex;align-items:center;margin:0 4px;}
+.pain-track{position:relative;width:100%;height:10px;border-radius:99px;background:linear-gradient(90deg,#22d17a,#84cc16 20%,#eab308 40%,#ff8c42 65%,#ff4444 82%,#990000 100%);cursor:pointer;}
+.pain-thumb{position:absolute;top:50%;width:28px;height:28px;border-radius:50%;background:#e8f4ff;border:3px solid var(--blue);transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.5);transition:border-color .2s;touch-action:none;cursor:grab;}
+.pain-thumb:active{cursor:grabbing;}
+.pain-readout{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.pain-num{font-size:1.5rem;font-weight:900;font-family:var(--mono);min-width:36px;}
+.pain-adj{font-size:.82rem;font-weight:700;padding:4px 12px;border-radius:8px;flex:1;text-align:center;}
+.pain-ticks{display:flex;justify-content:space-between;padding:0 4px;margin-top:4px;}
+.pain-tick{font-size:.6rem;color:var(--muted);font-family:var(--mono);}
+/* colors per level */
+.pc-0{color:#22d17a;}.pc-05{color:#4fd88a;}.pc-1{color:#84cc16;}
+.pc-15{color:#a8d42a;}.pc-2{color:#eab308;}.pc-25{color:#f59e0b;}
+.pc-3{color:#ff8c42;}.pc-35{color:#f97316;}.pc-4{color:#ff4444;}
+.pc-45{color:#ff2020;}.pc-5{color:#cc0000;}
+.pb-0{background:#0a2e1c;}.pb-05{background:#0d2e18;}.pb-1{background:#1a2e0a;}
+.pb-15{background:#1e2e08;}.pb-2{background:#2e2200;}.pb-25{background:#2e1a00;}
+.pb-3{background:#2a1200;}.pb-35{background:#2e0a00;}.pb-4{background:#2a0808;}
+.pb-45{background:#280404;}.pb-5{background:#1e0000;}
+
+/* ── JOURNAL ENTRIES ── */
+.je-wrap{position:relative;overflow:hidden;border-radius:14px;margin-bottom:8px;}
+.je-del-bg{position:absolute;right:0;top:0;bottom:0;width:90px;background:var(--red-bg);border:1.5px solid var(--red);border-left:none;border-radius:0 14px 14px 0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;}
+.je-del-bg span{font-size:1.2rem;}
+.je-del-bg small{font-size:.6rem;font-weight:700;color:var(--red);text-transform:uppercase;}
+.je-edit-bg{position:absolute;left:0;top:0;bottom:0;width:90px;background:var(--blue-dim);border:1.5px solid var(--blue);border-right:none;border-radius:14px 0 0 14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;}
+.je-edit-bg span{font-size:1.2rem;}
+.je-edit-bg small{font-size:.6rem;font-weight:700;color:var(--blue);text-transform:uppercase;}
+.je{background:var(--card);border-left:4px solid var(--blue);padding:13px;transition:transform .2s ease;will-change:transform;touch-action:pan-y;user-select:none;border-radius:14px;}
+.je.swiped-left{transform:translateX(-90px);}
+.je.swiped-right{transform:translateX(90px);}
+.je.lv-g{border-left-color:var(--green);}
+.je.lv-o{border-left-color:var(--orange);}
+.je.lv-r{border-left-color:var(--red);}
+.je.lv-renfo{border-left-color:var(--purple);}
+.je-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.je-date{font-size:.75rem;font-weight:800;color:var(--blue);font-family:var(--mono);}
+.je-body{font-size:.78rem;line-height:1.75;color:#7ab0e0;}
+.je-body strong{color:var(--text);}
+.je-tags{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;}
+.tag{padding:3px 9px;border-radius:7px;font-size:.68rem;font-weight:700;}
+.tag-g{background:var(--green-bg);color:var(--green);}
+.tag-o{background:var(--orange-bg);color:var(--orange);}
+.tag-r{background:var(--red-bg);color:var(--red);}
+.tag-b{background:var(--blue-dim);color:var(--blue);}
+.tag-p{background:#1e1040;color:var(--purple);}
+.tag-t{background:#0a2e28;color:var(--teal);}
+.tag-muscu{background:#0d2030;color:#7eb8d4;border:1px solid #2a5070;}
+.lv-muscu{border-left-color:#7eb8d4;}
+.swipe-hint{text-align:center;font-size:.7rem;color:var(--muted);margin-bottom:8px;}
+
+/* ── JOURNAL FORM ── */
+.jform{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.jform-title{font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fg label{font-size:.76rem;font-weight:600;color:var(--muted);}
+.fg select,.fg textarea,.fg input[type=date]{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);padding:10px 12px;font-size:16px;font-family:var(--font);-webkit-appearance:none;min-height:42px;width:100%;}
+.fg textarea{resize:none;height:68px;}
+
+/* ── RISK GAUGE ── */
+.gauge-wrap{position:relative;width:100%;margin:8px 0;}
+.gauge-svg{width:100%;display:block;}
+.gauge-needle{transform-origin:50% 100%;transition:transform .8s cubic-bezier(.34,1.56,.64,1);}
+.gauge-score-big{text-anchor:middle;font-family:var(--mono);font-weight:900;}
+.gauge-label-txt{text-anchor:middle;font-family:var(--font);font-weight:700;}
+.risk-detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.risk-item{background:var(--bg2);border-radius:12px;padding:10px 12px;border:1px solid var(--border);}
+.risk-item-label{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.risk-item-val{font-size:1rem;font-weight:800;font-family:var(--mono);}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:200px;margin-top:8px;}
+
+/* ── SCORE BOX ── */
+.sbox{border-radius:16px;padding:16px;text-align:center;margin-bottom:12px;}
+.sbox.calm{background:var(--green-bg);border:1.5px solid var(--green);}
+.sbox.watch{background:var(--orange-bg);border:1.5px solid var(--orange);}
+.sbox.overload{background:var(--red-bg);border:1.5px solid var(--red);}
+.sbox-num{font-size:3rem;font-weight:900;font-family:var(--mono);}
+.sbox.calm .sbox-num{color:var(--green);}
+.sbox.watch .sbox-num{color:var(--orange);}
+.sbox.overload .sbox-num{color:var(--red);}
+.sbox-lbl{font-size:.88rem;font-weight:800;margin-top:3px;}
+.sbox.calm .sbox-lbl{color:#2a9a60;}
+.sbox.watch .sbox-lbl{color:#cc6020;}
+.sbox.overload .sbox-lbl{color:#cc2020;}
+.sbox-det{font-size:.75rem;color:var(--muted);margin-top:8px;line-height:1.7;}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:center;}
+.leg{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--muted);}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
+.leg-dash{width:14px;height:0;border-top:2px dashed;}
+
+/* ── MANAGE ── */
+.manage-row{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:7px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.manage-info{flex:1;min-width:0;}
+.manage-date{font-size:.75rem;font-weight:700;color:var(--blue);margin-bottom:2px;}
+.manage-sub{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.manage-actions{display:flex;gap:5px;flex-shrink:0;}
+.mabtn{padding:7px 11px;border-radius:9px;border:none;cursor:pointer;font-size:.75rem;font-weight:700;font-family:var(--font);min-height:34px;}
+.mabtn-edit{background:var(--blue-dim);color:var(--blue);border:1.5px solid var(--blue);}
+.mabtn-del{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);}
+
+/* ── BOTTOM SHEET (EDIT) ── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;}
+.sheet-overlay.open{opacity:1;pointer-events:all;}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--border);z-index:201;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;padding:0 16px calc(24px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;}
+.sheet.open{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:12px auto 16px;}
+.sheet-title{font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:16px;text-align:center;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:flex;align-items:flex-end;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border-radius:20px;padding:20px;width:100%;max-width:400px;border:1px solid var(--border);}
+.modal h4{font-size:.95rem;font-weight:800;color:var(--red);margin-bottom:8px;text-align:center;}
+.modal p{font-size:.82rem;color:var(--muted);margin-bottom:16px;text-align:center;line-height:1.6;}
+.modal-btns{display:flex;gap:8px;}
+.modal-btns button{flex:1;padding:12px;border-radius:12px;border:none;font-size:.88rem;font-weight:800;font-family:var(--font);cursor:pointer;}
+.modal-cancel{background:var(--bg3);color:var(--muted);}
+.modal-confirm{background:var(--red);color:#fff;}
+
+/* ── MISC ── */
+.badge{display:inline-block;padding:4px 11px;border-radius:99px;font-size:.72rem;font-weight:700;}
+.badge-g{background:var(--green-bg);color:var(--green);}
+.badge-o{background:var(--orange-bg);color:var(--orange);}
+.msg{text-align:center;padding:10px;background:var(--green-bg);border-radius:12px;color:var(--green);font-weight:800;font-size:.85rem;margin-top:6px;}
+.divider{height:1px;background:var(--border);margin:12px 0;}
+.note{font-size:.68rem;color:var(--muted);text-align:center;margin-top:6px;}
+.import-area{background:var(--bg2);border:1.5px dashed var(--border);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;}
+.import-area:active{border-color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="topbar-title">Périostite · Trail</span>
+    <span class="topbar-date" id="topdate"></span>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ SÉANCE ══ -->
+    <div class="section active" id="s-seance">
+      <div class="rulebox">
+        <p><strong>Règle d'or :</strong> Marche 2-3 min sans y penser. Tibia s'impose = 🟡. Dois chercher = 🟢 (hypervigilance).<br>
+        <strong>Limite :</strong> cherche et trouve = vert · spontané = orange · &gt;4/10 = rouge</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🌅 Test du matin</div>
+        <div class="q-label">Tibia s'impose spontanément à la marche ?</div>
+        <div class="opts" id="q1">
+          <div class="opt" onclick="sel(this,'q1','g')">Non — rien</div>
+          <div class="opt" onclick="sel(this,'q1','o')">Oui — même minime</div>
+          <div class="opt" onclick="sel(this,'q1','r')">Douleur franche</div>
+        </div>
+        <div class="q-label" style="margin-top:12px">Douleur au repos ou nocturne ?</div>
+        <div class="opts" id="q2">
+          <div class="opt" onclick="sel(this,'q2','g')">Non</div>
+          <div class="opt" onclick="sel(this,'q2','r')">Oui</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Contexte</div>
+        <div class="q-label">Séance prévue ?</div>
+        <div class="opts" id="q3">
+          <div class="opt" onclick="sel(this,'q3','g')">Footing EF / Vélo</div>
+          <div class="opt" onclick="sel(this,'q3','o')">Fractionné / Seuil</div>
+          <div class="opt" onclick="sel(this,'q3','o')">Sortie longue D+</div>
+          <div class="opt" onclick="sel(this,'q3','b')">Renfo / Tapis</div>
+        </div>
+        <div class="q-label" style="margin-top:12px">Dernière séance intense ?</div>
+        <div class="opts" id="q4">
+          <div class="opt" onclick="sel(this,'q4','g')">>48h</div>
+          <div class="opt" onclick="sel(this,'q4','o')">24-48h</div>
+          <div class="opt" onclick="sel(this,'q4','r')">Hier/auj.</div>
+        </div>
+        <div class="q-label" style="margin-top:12px">Course à venir ?</div>
+        <div class="opts" id="q5">
+          <div class="opt" onclick="sel(this,'q5','g')">Non / >J-4</div>
+          <div class="opt" onclick="sel(this,'q5','o')">J-3 ou J-4</div>
+          <div class="opt" onclick="sel(this,'q5','r')">J-1 ou J-2</div>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="evalS()">Évaluer ma séance</button>
+      <button class="btn btn-ghost" onclick="rstS()">Recommencer</button>
+      <div class="result" id="rs"></div>
+    </div>
+
+    <!-- ══ RENFO QUOTIDIEN ══ -->
+    <div class="section" id="s-renfo">
+      <div class="card">
+        <div class="card-title">✅ Renfo quotidien</div>
+        <div class="pbar"><div class="pfill" id="rp" style="width:0%"></div></div>
+        <p style="font-size:.73rem;color:var(--muted);margin-bottom:10px" id="rc">0 / 3 exercices</p>
+        <div class="renfo-grid">
+          <div class="ri" id="r1" onclick="tR('r1')"><div class="ri-title">Iso mollet <span id="r1c">⬜</span></div><div class="ri-sub">2 × 30s debout</div></div>
+          <div class="ri" id="r2" onclick="tR('r2')"><div class="ri-title">Short foot <span id="r2c">⬜</span></div><div class="ri-sub">2 × 30s / pied</div></div>
+          <div class="ri" id="r3" onclick="tR('r3')"><div class="ri-title">Tibial post <span id="r3c">⬜</span></div><div class="ri-sub">3 × 15, 3s hold</div></div>
+        </div>
+        <div id="rdm" style="display:none" class="msg">✅ Renfo quotidien complété !</div>
+        <button class="btn btn-green" style="margin-top:8px" onclick="saveRenfoQuot()">💾 Enregistrer dans le journal</button>
+      </div>
+      <div class="card">
+        <div class="card-title">⏱ Timers</div>
+        <div class="timer-grid">
+          <div class="tbox"><h4>Iso / Short foot</h4><div class="tdisp" id="td1">0:30</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(1,30)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(1,30)">↺</button></div></div>
+          <div class="tbox"><h4>Hold Tibial</h4><div class="tdisp" id="td2">0:03</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(2,3)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(2,3)">↺</button></div></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">📅 Prochaine renfo spé</div><div id="pnext" style="font-size:.82rem;color:var(--muted);padding:4px 0">Enregistre une séance renfo spé pour calculer la prochaine.</div></div>
+    </div>
+
+    <!-- ══ RENFO SPÉ ══ -->
+    <div class="section" id="s-spe">
+      <div class="card">
+        <div class="card-title">🔍 Critères avant renfo spé</div>
+        <div class="q-label">Tibia spontané à la marche ?</div>
+        <div class="opts" id="p1"><div class="opt" onclick="sel(this,'p1','g')">Non</div><div class="opt" onclick="sel(this,'p1','r')">Oui — même minime</div></div>
+        <div class="q-label" style="margin-top:10px">Tissu calme depuis ?</div>
+        <div class="opts" id="p2"><div class="opt" onclick="sel(this,'p2','g')">≥ 48h</div><div class="opt" onclick="sel(this,'p2','o')">24-48h</div><div class="opt" onclick="sel(this,'p2','r')">&lt;24h</div></div>
+        <div class="q-label" style="margin-top:10px">Course dans les 5 jours ?</div>
+        <div class="opts" id="p3"><div class="opt" onclick="sel(this,'p3','g')">Non</div><div class="opt" onclick="sel(this,'p3','r')">Oui</div></div>
+        <div class="q-label" style="margin-top:10px">Séance intense dans les 48h ?</div>
+        <div class="opts" id="p4"><div class="opt" onclick="sel(this,'p4','g')">Non</div><div class="opt" onclick="sel(this,'p4','r')">Oui</div></div>
+        <div class="q-label" style="margin-top:10px">Renfo lourd mollets déjà aujourd'hui ?</div>
+        <div class="opts" id="p5"><div class="opt" onclick="sel(this,'p5','g')">Non</div><div class="opt" onclick="sel(this,'p5','r')">Oui</div></div>
+        <button class="btn btn-blue" style="margin-top:10px" onclick="evalP()">Évaluer</button>
+        <button class="btn btn-ghost" onclick="rstP()">Recommencer</button>
+        <div class="result" id="rp2"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🦵 Niveau 3 — Séance</div>
+        <div class="chk" id="pe1" onclick="tP('pe1')"><span class="chk-t">🔹 Short foot one leg — 3 × 30s</span><span id="pe1c">⬜</span></div>
+        <div class="chk" id="pe2" onclick="tP('pe2')"><span class="chk-t">🔹 One leg calf raises (3-0-3-0) — 3 × 12</span><span id="pe2c">⬜</span></div>
+        <div class="chk" id="pe3" onclick="tP('pe3')"><span class="chk-t">🔹 Bent knee calf raises (3-0-3-0) — 3 × 15</span><span id="pe3c">⬜</span></div>
+        <div class="chk" id="pe4" onclick="tP('pe4')"><span class="chk-t">🔹 Tibial post debout — 3 × 15, 3s hold</span><span id="pe4c">⬜</span></div>
+        <div class="chk" id="pe5" onclick="tP('pe5')"><span class="chk-t">🔹 Double tap jump — 3 × 20</span><span id="pe5c">⬜</span></div>
+        <div class="chk" id="pe6" onclick="tP('pe6')"><span class="chk-t">🔹 Skips A léger — 3 × 20m</span><span id="pe6c">⬜</span></div>
+        <div class="pbar"><div class="pfill" id="pp" style="width:0%"></div></div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:2px" id="pc">0 / 6</p>
+        <div class="divider"></div>
+        <div class="timer-grid">
+          <div class="tbox"><h4>Short foot — 30s</h4><div class="tdisp" id="td3">0:30</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(3,30)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(3,30)">↺</button></div></div>
+          <div class="tbox"><h4>Hold — 3s</h4><div class="tdisp" id="td4">0:03</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(4,3)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(4,3)">↺</button></div></div>
+        </div>
+        <button class="btn btn-green" style="margin-top:10px" onclick="saveRenfoSpe()">✅ Enregistrer renfo spé</button>
+        <button class="btn btn-ghost" onclick="rstPI()">Réinitialiser</button>
+        <div id="psaved" style="display:none" class="msg">Séance enregistrée ! Prochaine dans 2 jours. 💪</div>
+      </div>
+    </div>
+
+    <!-- ══ JOURNAL ══ -->
+    <div class="section" id="s-journal">
+      <div class="jform" id="jform-container">
+        <div class="jform-title" id="jform-mode-title">➕ Nouvelle entrée</div>
+        <div class="fg"><label>Date</label><input type="date" id="jdate"></div>
+        <div class="fg"><label>Type de séance</label>
+          <select id="jtyp" onchange="onTypChange()"><option>Footing EF</option><option>Fractionné / Seuil</option><option>Sortie longue</option><option>Vélo</option><option>Tapis D+</option><option>Renfo quotidien</option><option>Renfo spé</option><option>Muscu</option><option>Spartan</option><option>Course</option><option>Repos</option></select>
+        </div>
+        <div id="pain-fields">
+          <div class="pain-block" id="pb-mat"></div>
+          <div id="pain-fields-effort">
+            <div class="pain-block" id="pb-ech"></div>
+            <div class="pain-block" id="pb-eff"></div>
+            <div class="pain-block" id="pb-apr"></div>
+          </div>
+        </div>
+        <div class="fg"><label>Notes</label><textarea id="jnot" placeholder="Ressenti, contexte..."></textarea></div>
+        <button class="btn btn-blue" onclick="submitJ()">Enregistrer</button>
+        <button class="btn btn-ghost" id="cancel-edit-btn" style="display:none" onclick="cancelEdit()">Annuler</button>
+      </div>
+      <p class="swipe-hint">← Glisse gauche pour supprimer · Glisse droite pour modifier →</p>
+      <div id="jlist"></div>
+      <p class="note">Données sauvegardées dans le navigateur. Exporte via ⚙️ Gérer.</p>
+    </div>
+
+    <!-- ══ ÉVOLUTION ══ -->
+    <div class="section" id="s-graph">
+      <!-- GAUGE RISQUE -->
+      <div class="card">
+        <div class="card-title">🎯 Score de risque global</div>
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#22d17a"/>
+                <stop offset="35%" style="stop-color:#eab308"/>
+                <stop offset="65%" style="stop-color:#ff8c42"/>
+                <stop offset="100%" style="stop-color:#ff2020"/>
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Arc bg -->
+            <path d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#1a3050" stroke-width="18" stroke-linecap="round"/>
+            <!-- Arc colored -->
+            <path d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="url(#gaugeGrad)" stroke-width="18" stroke-linecap="round" opacity=".85"/>
+            <!-- Tick marks -->
+            <g stroke="#0d1626" stroke-width="2" opacity=".8">
+              <line x1="150" y1="32" x2="150" y2="44"/>
+              <line x1="82" y1="53" x2="88" y2="63"/>
+              <line x1="32" y1="110" x2="44" y2="114"/>
+              <line x1="218" y1="53" x2="212" y2="63"/>
+              <line x1="268" y1="110" x2="256" y2="114"/>
+            </g>
+            <!-- Labels seuils : 0 (gauche) → 10 (droite), arc -90° à +90° -->
+            <!-- score=0  angle=-90°: extrémité gauche -->
+            <text x="18" y="158" font-size="8.5" fill="#22d17a" font-family="DM Mono" font-weight="700" text-anchor="middle">0</text>
+            <!-- score=10 angle=+90°: extrémité droite -->
+            <text x="282" y="158" font-size="8.5" fill="#cc0000" font-family="DM Mono" font-weight="700" text-anchor="middle">10</text>
+            <!-- Ticks et labels de seuil intérieurs (r=102) -->
+            <!-- score=1.5 angle=-63°: x=196, y=241 -->
+            <line x1="200" y1="249" x2="209" y2="265" stroke="#a3e635" stroke-width="1.5" opacity=".8"/>
+            <text x="191" y="237" font-size="7.5" fill="#a3e635" font-family="DM Mono" font-weight="700" text-anchor="middle">1.5</text>
+            <!-- score=3.5 angle=-27°: x=241, y=196 -->
+            <line x1="249" y1="200" x2="265" y2="209" stroke="#ff8c42" stroke-width="1.5" opacity=".8"/>
+            <text x="238" y="193" font-size="7.5" fill="#ff8c42" font-family="DM Mono" font-weight="700" text-anchor="middle">3.5</text>
+            <!-- score=5.5 angle=+9°: x=251, y=134 -->
+            <line x1="260" y1="133" x2="277" y2="130" stroke="#ff5500" stroke-width="1.5" opacity=".8"/>
+            <text x="247" y="131" font-size="7.5" fill="#ff5500" font-family="DM Mono" font-weight="700" text-anchor="end">5.5</text>
+            <!-- score=7.5 angle=+45°: x=222, y=78 -->
+            <line x1="229" y1="72" x2="241" y2="59" stroke="#ff2020" stroke-width="1.5" opacity=".8"/>
+            <text x="222" y="70" font-size="7.5" fill="#ff2020" font-family="DM Mono" font-weight="700" text-anchor="middle">7.5</text>
+            <!-- Needle -->
+            <g id="gauge-needle-g" class="gauge-needle" style="transform-origin:150px 150px;transform:rotate(-90deg)">
+              <line x1="150" y1="150" x2="150" y2="40" stroke="#e8f4ff" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)"/>
+              <circle cx="150" cy="150" r="7" fill="#e8f4ff" filter="url(#glow)"/>
+            </g>
+            <!-- Score display -->
+            <text id="gauge-score" class="gauge-score-big" x="150" y="135" font-size="28" fill="#e8f4ff">—</text>
+            <text id="gauge-label" class="gauge-label-txt" x="150" y="155" font-size="11" fill="#4a6a8a">Pas assez de données</text>
+          </svg>
+        </div>
+        <div class="risk-detail" id="risk-detail"></div>
+      </div>
+      <!-- CHART -->
+      <div class="card">
+        <div class="card-title">📈 Courbes de douleur</div>
+        <div class="chart-wrap"><canvas id="painChart"></canvas></div>
+        <div class="legend" id="chart-legend">
+          <div class="leg"><div class="leg-dot" style="background:#f97316"></div>Matin</div>
+          <div class="leg"><div class="leg-dot" style="background:#60a5fa"></div>Éch.</div>
+          <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Effort</div>
+          <div class="leg"><div class="leg-dot" style="background:#34d399"></div>Après</div>
+          <div class="leg"><div class="leg-dash" style="border-color:#f97316"></div>↗ repos</div>
+          <div class="leg"><div class="leg-dash" style="border-color:#a78bfa"></div>↗ effort</div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">📊 Résumé</div><div id="stats" style="font-size:.82rem;line-height:1.9;color:#7ab0e0;"></div></div>
+    </div>
+
+    <!-- ══ SPARTAN ══ -->
+    <div class="section" id="s-spartan">
+      <div class="rulebox">
+        <p><strong>Spartan Race :</strong> Intégrer progressivement. Burpees = impact tibial modéré → surveiller. Obstacles = charge excentrique. Priorité : terminer sans aggraver.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🔥 Exercices obstacle</div>
+        <div class="chk" id="sp1" onclick="tSp('sp1')"><span class="chk-t">🧱 Mur d'escalade — 3 × 5 reps (contrôlé, pas de saut réception dure)</span><span id="sp1c">⬜</span></div>
+        <div class="chk" id="sp2" onclick="tSp('sp2')"><span class="chk-t">🪢 Corde lisse — 3 × montée complète (bras only si tibia sensible)</span><span id="sp2c">⬜</span></div>
+        <div class="chk" id="sp3" onclick="tSp('sp3')"><span class="chk-t">🏋️ Farmer carry — 3 × 30m (charge modérée, pas de course)</span><span id="sp3c">⬜</span></div>
+        <div class="chk" id="sp4" onclick="tSp('sp4')"><span class="chk-t">🐻 Bear crawl — 2 × 20m (basse intensité tibiale)</span><span id="sp4c">⬜</span></div>
+        <div class="chk" id="sp5" onclick="tSp('sp5')"><span class="chk-t">🟤 Monkey bars — 3 × traversée (épaules + grip)</span><span id="sp5c">⬜</span></div>
+        <div class="pbar"><div class="pfill" id="spp" style="width:0%"></div></div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:2px" id="sppc">0 / 5</p>
+      </div>
+      <div class="card">
+        <div class="card-title">💥 Burpees — protocole adapté</div>
+        <div class="rulebox" style="margin-bottom:12px">
+          <p><strong>⚠️ Règle burpees :</strong> Réception souple des deux pieds simultanément. Si douleur tibia au saut → remplace par step-back burpee (pas de saut).</p>
+        </div>
+        <div class="chk" id="sp6" onclick="tSp('sp6')"><span class="chk-t">✅ Step-back burpee — 3 × 10 (sans saut, réception contrôlée)</span><span id="sp6c">⬜</span></div>
+        <div class="chk" id="sp7" onclick="tSp('sp7')"><span class="chk-t">✅ Burpee complet — 3 × 8 (saut si tibia calme &lt;2/10 matin)</span><span id="sp7c">⬜</span></div>
+        <div class="timer-grid" style="margin-top:10px">
+          <div class="tbox"><h4>Récup burpees</h4><div class="tdisp" id="td5">1:30</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(5,90)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(5,90)">↺</button></div></div>
+          <div class="tbox"><h4>Série obstacle</h4><div class="tdisp" id="td6">2:00</div><div class="tbtns"><button class="tbtn tbtn-go" onclick="startT(6,120)">▶</button><button class="tbtn tbtn-rst" onclick="resetT(6,120)">↺</button></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏃 Critères course Spartan</div>
+        <div style="font-size:.82rem;line-height:2;color:#7ab0e0;">
+          <div>🟢 <strong>Tibia matin &lt;2/10</strong> → course normale</div>
+          <div>🟡 <strong>2-4/10 spontané</strong> → rythme confort, évite les dénivelés brusques</div>
+          <div>🔴 <strong>&gt;4/10 à l'éch.</strong> → marche rapide + obstacles bras only</div>
+          <div style="margin-top:8px;padding:10px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
+            <strong style="color:var(--blue)">Pénalité burpee :</strong> si tu rates un obstacle → 30 burpees.<br>
+            <span style="color:var(--muted);font-size:.75rem">Si tibia &gt;4/10 : négocie avec toi-même (step-back). L'objectif c'est finir, pas de te blesser davantage.</span>
+          </div>
+        </div>
+        <button class="btn btn-green" style="margin-top:12px" onclick="saveSpartan()">✅ Enregistrer séance Spartan</button>
+        <div id="sp-saved" style="display:none" class="msg">Séance Spartan enregistrée ! 🔥</div>
+      </div>
+    </div>
+
+    <!-- ══ GÉRER ══ -->
+    <div class="section" id="s-gestion">
+      <div class="card">
+        <div class="card-title">💾 Sauvegarde</div>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Exporte pour conserver entre sessions ou partager avec ton kiné.</p>
+        <button class="btn btn-blue" onclick="exportJ()">📤 Exporter (JSON)</button>
+        <div class="import-area" style="margin-top:8px" onclick="document.getElementById('importFile').click()">
+          <p style="font-size:.82rem;color:var(--muted)">📥 Importer un fichier JSON</p>
+          <p style="font-size:.7rem;color:var(--muted);opacity:.6;margin-top:3px">Appuie pour sélectionner</p>
+          <input type="file" id="importFile" accept=".json" onchange="importJ(event)" style="display:none">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗑 Entrées du journal</div>
+        <div id="manage-list"></div>
+        <div id="manage-empty" style="font-size:.82rem;color:var(--muted);text-align:center;padding:12px;display:none">Aucune entrée.</div>
+        <div class="divider"></div>
+        <button class="btn btn-red" onclick="confirmClearAll()">⚠️ Tout supprimer</button>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" onclick="sw('seance')"><span class="ni">🌅</span><span class="nl">Séance</span></button>
+      <button class="nav-btn" onclick="sw('renfo')"><span class="ni">💪</span><span class="nl">Renfo</span></button>
+      <button class="nav-btn" onclick="sw('spe')"><span class="ni">🦵</span><span class="nl">Spé</span></button>
+      <button class="nav-btn" onclick="sw('spartan')"><span class="ni">🔥</span><span class="nl">Spartan</span></button>
+      <button class="nav-btn" onclick="sw('journal')"><span class="ni">📓</span><span class="nl">Journal</span></button>
+      <button class="nav-btn" onclick="sw('graph')"><span class="ni">📈</span><span class="nl">Évol.</span></button>
+      <button class="nav-btn" onclick="sw('gestion')"><span class="ni">⚙️</span><span class="nl">Gérer</span></button>
+    </div>
+  </nav>
+</div>
+
+<!-- BOTTOM SHEET EDIT -->
+<div class="sheet-overlay" id="sheet-ov" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">✏️ Modifier l'entrée</div>
+  <div class="fg"><label>Date</label><input type="date" id="e-jdate"></div>
+  <div class="fg"><label>Type de séance</label>
+    <select id="e-jtyp" onchange="onEditTypChange()"><option>Footing EF</option><option>Fractionné / Seuil</option><option>Sortie longue</option><option>Vélo</option><option>Tapis D+</option><option>Renfo quotidien</option><option>Renfo spé</option><option>Muscu</option><option>Spartan</option><option>Course</option><option>Repos</option></select>
+  </div>
+  <div id="e-pain-fields">
+    <div class="pain-block" id="e-pb-mat"></div>
+    <div id="e-pain-fields-effort">
+      <div class="pain-block" id="e-pb-ech"></div>
+      <div class="pain-block" id="e-pb-eff"></div>
+      <div class="pain-block" id="e-pb-apr"></div>
+    </div>
+  </div>
+  <div class="fg"><label>Notes</label><textarea id="e-jnot" placeholder="Notes..."></textarea></div>
+  <button class="btn btn-blue" onclick="saveEdit()">💾 Sauvegarder</button>
+  <button class="btn btn-ghost" onclick="closeSheet()" style="margin-bottom:8px">Annuler</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h4 id="modal-title">Supprimer ?</h4>
+    <p id="modal-msg"></p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-confirm" id="modal-ok">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// PAIN SCALE
+// ══════════════════════════════════════════════════════
+// zones EVA /10 — adjectifs validés (Jensen 1986, Farrar 2001, IASP NRS)
+const ZONES=[
+  {max:0.05,adj:'Pas de douleur',              cc:'pc-0', bc:'pb-0'},
+  {max:1.00,adj:'Quasi imperceptible',         cc:'pc-05',bc:'pb-05'},
+  {max:2.00,adj:'Très légère — activité normale',  cc:'pc-1', bc:'pb-1'},
+  {max:3.00,adj:'Légère — perceptible mais tolérable', cc:'pc-15',bc:'pb-15'},
+  {max:4.00,adj:'Modérée — gêne fonctionnelle',cc:'pc-2', bc:'pb-2'},
+  {max:5.00,adj:'Modérée — distraction active',cc:'pc-25',bc:'pb-25'},
+  {max:6.00,adj:'Intense — limite activité',   cc:'pc-3', bc:'pb-3'},
+  {max:7.00,adj:'Intense — difficile à ignorer',cc:'pc-35',bc:'pb-35'},
+  {max:8.00,adj:'Très intense — activité compromise', cc:'pc-4',bc:'pb-4'},
+  {max:9.00,adj:'Sévère — quasi impossible d\'agir', cc:'pc-45',bc:'pb-45'},
+  {max:10.01,adj:'Maximale — insupportable',   cc:'pc-5', bc:'pb-5'},
+];
+function sFor(v){return ZONES.find(z=>+v<z.max)||ZONES[ZONES.length-1];}
+
+function buildSlider(containerId, key, label, initVal=0){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  c.innerHTML=`
+    <label class="pain-label">${label}</label>
+    <div class="pain-track-wrap">
+      <div class="pain-track" id="pt-${key}">
+        <div class="pain-thumb" id="pth-${key}"></div>
+      </div>
+    </div>
+    <div class="pain-readout">
+      <span class="pain-num ${sFor(initVal).cc}" id="pn-${key}">${(+initVal).toFixed(2)}</span>
+      <span class="pain-adj ${sFor(initVal).cc} ${sFor(initVal).bc}" id="pa-${key}">${sFor(initVal).adj}</span>
+    </div>
+    <div class="pain-ticks">${[0,2,4,6,8,10].map(n=>`<span class="pain-tick">${n}</span>`).join('')}</div>`;
+  setSliderVal(key, initVal);
+  initSliderEvents(key);
+}
+
+function setSliderVal(key, v){
+  v=Math.max(0,Math.min(10,+v));
+  v=Math.round(v*100)/100; // 2 décimales
+  sliderVals[key]=v;
+  const track=document.getElementById('pt-'+key);
+  const thumb=document.getElementById('pth-'+key);
+  const numEl=document.getElementById('pn-'+key);
+  const adjEl=document.getElementById('pa-'+key);
+  if(!track||!thumb)return;
+  thumb.style.left=`${(v/10)*100}%`;
+  const s=sFor(v);
+  numEl.textContent=v.toFixed(2);
+  numEl.className='pain-num '+s.cc;
+  adjEl.textContent=s.adj;
+  adjEl.className='pain-adj '+s.cc+' '+s.bc;
+}
+
+// ── Gestionnaire global drag souris (1 seul listener pour tous les sliders)
+let _dragKey=null;
+document.addEventListener('mousemove',e=>{
+  if(!_dragKey)return;
+  const track=document.getElementById('pt-'+_dragKey);
+  if(!track)return;
+  const r=track.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+  setSliderVal(_dragKey,Math.round(pct*1000)/100);
+});
+document.addEventListener('mouseup',()=>{_dragKey=null;});
+
+function initSliderEvents(key){
+  const track=document.getElementById('pt-'+key);
+  if(!track)return;
+  const getVal=clientX=>{
+    const r=track.getBoundingClientRect();
+    const pct=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+    return Math.round(pct*1000)/100;
+  };
+  // Touch (mobile)
+  track.addEventListener('touchstart',e=>{setSliderVal(key,getVal(e.touches[0].clientX));},{passive:true});
+  track.addEventListener('touchmove',e=>{e.preventDefault();setSliderVal(key,getVal(e.touches[0].clientX));},{passive:false});
+  // Mouse (desktop) — utilise le gestionnaire global
+  track.addEventListener('mousedown',e=>{_dragKey=key;setSliderVal(key,getVal(e.clientX));e.preventDefault();});
+}
+
+const sliderVals={mat:0,ech:0,eff:0,apr:0,'e-mat':0,'e-ech':0,'e-eff':0,'e-apr':0};
+
+// ══════════════════════════════════════════════════════
+// STATE / INIT
+// ══════════════════════════════════════════════════════
+const SEL={};
+const rSt={r1:false,r2:false,r3:false};
+const pSt={pe1:false,pe2:false,pe3:false,pe4:false,pe5:false,pe6:false};
+const spSt={sp1:false,sp2:false,sp3:false,sp4:false,sp5:false,sp6:false,sp7:false};
+const JK='periostite_v11';
+let lastP=null, chartInst=null, editIdx=null, pendingDelIdx=null;
+const timers={};
+
+document.getElementById('topdate').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+document.getElementById('jdate').value=new Date().toISOString().split('T')[0];
+
+// Build sliders
+buildSlider('pb-mat','mat','Douleur matin');
+buildSlider('pb-ech','ech','Douleur échauffement');
+buildSlider('pb-eff','eff','Douleur effort');
+buildSlider('pb-apr','apr','Sensations après effort');
+buildSlider('e-pb-mat','e-mat','Douleur matin');
+buildSlider('e-pb-ech','e-ech','Douleur échauffement');
+buildSlider('e-pb-eff','e-eff','Douleur effort');
+buildSlider('e-pb-apr','e-apr','Sensations après effort');
+
+// ══════════════════════════════════════════════════════
+// TIMERS
+// ══════════════════════════════════════════════════════
+function fmt(s){return`0:${String(s).padStart(2,'0')}`;}
+function startT(id,dur){
+  if(timers[id]?.running){clearInterval(timers[id].interval);timers[id].running=false;document.querySelector(`[onclick="startT(${id},${dur})"]`).textContent='▶';return;}
+  if(!timers[id])timers[id]={rem:dur,running:false};
+  timers[id].running=true;document.querySelector(`[onclick="startT(${id},${dur})"]`).textContent='⏸';
+  const el=document.getElementById(`td${id}`);el.className='tdisp run';
+  timers[id].interval=setInterval(()=>{
+    timers[id].rem--;el.textContent=fmt(Math.max(0,timers[id].rem));
+    if(timers[id].rem<=0){clearInterval(timers[id].interval);timers[id].running=false;el.className='tdisp done-t';el.textContent='✅';document.querySelector(`[onclick="startT(${id},${dur})"]`).textContent='▶';}
+  },1000);
+}
+function resetT(id,dur){if(timers[id])clearInterval(timers[id].interval);timers[id]={rem:dur,running:false};const el=document.getElementById(`td${id}`);el.className='tdisp';el.textContent=fmt(dur);try{document.querySelector(`[onclick="startT(${id},${dur})"]`).textContent='▶';}catch{}}
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+function sw(t){
+  const ts=['seance','renfo','spe','spartan','journal','graph','gestion'];
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',ts[i]===t));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+t).classList.add('active');
+  if(t==='renfo')updNext();
+  if(t==='graph'){renderChart();renderStats();renderGauge();}
+  if(t==='gestion')renderManage();
+}
+
+// ══════════════════════════════════════════════════════
+// SELECTIONS
+// ══════════════════════════════════════════════════════
+function sel(el,g,c){document.querySelectorAll(`#${g} .opt`).forEach(o=>o.classList.remove('sg','so','sr','sb'));el.classList.add(c==='g'?'sg':c==='o'?'so':c==='r'?'sr':'sb');SEL[g]=c;}
+
+// ══════════════════════════════════════════════════════
+// EVAL SÉANCE
+// ══════════════════════════════════════════════════════
+function evalS(){
+  const q1=SEL.q1,q2=SEL.q2,q3=SEL.q3,q4=SEL.q4,q5=SEL.q5;
+  const r=document.getElementById('rs');r.style.display='block';
+  if(q2==='r'||q1==='r'){r.className='result red';r.innerHTML=`<div class="res-title">🔴 REPOS ou VÉLO Z1 uniquement</div><div class="res-body"><ul><li>✅ Vélo Z1 &lt;115 bpm</li><li>✅ Iso + Short foot + Tibial post</li><li>❌ Aucune course ni intensité</li></ul><br>Douleur nocturne → consulter kiné.</div>`;return;}
+  if(q5==='r'){r.className='result orange';r.innerHTML=`<div class="res-title">🟡 J-1/J-2 — Repos ou ultra léger</div><div class="res-body"><ul><li>✅ Footing 15 min max Z1</li><li>✅ Vélo 25 min</li><li>❌ Fractionné / renfo lourd</li></ul></div>`;return;}
+  if(q1==='o'&&q3==='o'){r.className='result orange';r.innerHTML=`<div class="res-title">🟡 Tibia spontané → Pas d'intensité</div><div class="res-body"><ul><li>✅ Footing EF &lt;140 bpm</li><li>✅ Ou vélo Z2 1h-1h30</li><li>❌ Fractionné / seuil / 400m</li></ul></div>`;return;}
+  if(q4==='r'&&q3==='o'){r.className='result orange';r.innerHTML=`<div class="res-title">🟡 Trop tôt — Attendre 48h</div><div class="res-body"><ul><li>✅ Footing EF ou vélo</li><li>❌ Intensité avant 48h</li></ul></div>`;return;}
+  if(q1==='g'&&q2==='g'){
+    if(q3==='o'&&q5==='g'&&q4==='g'){r.className='result green';r.innerHTML=`<div class="res-title">🟢 Feu vert — Séance intense ✅</div><div class="res-body">Go !<br><br><strong>Pendant :</strong><ul><li>&lt;4/10 stable → continue</li><li>Douleur à l'éch. → réduis à EF</li><li>&gt;6/10 ou monte → stoppe</li></ul></div>`;}
+    else if(q3==='g'){r.className='result green';r.innerHTML=`<div class="res-title">🟢 Feu vert — EF / Vélo ✅</div><div class="res-body"><ul><li>✅ Z2 &lt;143 bpm</li><li>✅ Surveiller mollets après 30 min</li></ul></div>`;}
+    else{r.className='result green';r.innerHTML=`<div class="res-title">🟢 Feu vert — Renfo / Tapis ✅</div><div class="res-body"><ul><li>✅ Renfo selon le plan</li><li>✅ Pogos sur jambes reposées</li></ul></div>`;}
+    return;
+  }
+  r.className='result orange';r.innerHTML=`<div class="res-title">🟡 Règle des 10 minutes</div><div class="res-body">Pars 10 min Z2 très basse :<ul><li>Ça se calme → EF</li><li>Ça reste/monte → vélo</li></ul></div>`;
+}
+function rstS(){['q1','q2','q3','q4','q5'].forEach(g=>{delete SEL[g];document.querySelectorAll(`#${g} .opt`).forEach(o=>o.classList.remove('sg','so','sr','sb'));});const r=document.getElementById('rs');r.style.display='none';r.className='result';}
+
+// ══════════════════════════════════════════════════════
+// EVAL RENFO SPÉ
+// ══════════════════════════════════════════════════════
+function evalP(){
+  const p1=SEL.p1,p2=SEL.p2,p3=SEL.p3,p4=SEL.p4,p5=SEL.p5;
+  const r=document.getElementById('rp2');r.style.display='block';
+  if(p1==='r'||p3==='r'||p4==='r'||p5==='r'||p2==='r'){r.className='result red';r.innerHTML=`<div class="res-title">🔴 Renfo spé — NON</div><div class="res-body"><ul><li>✅ Iso + Short foot + Tibial post</li><li>❌ Reste niveau 3</li></ul></div>`;return;}
+  if(p2==='o'){r.className='result orange';r.innerHTML=`<div class="res-title">🟡 Version allégée seulement</div><div class="res-body"><ul><li>✅ Short foot + Tibial post + Bent knee léger</li><li>❌ One leg / Double tap / Skips A</li></ul></div>`;return;}
+  r.className='result green';r.innerHTML=`<div class="res-title">🟢 Renfo spé complète — GO ✅</div><div class="res-body">Si douleur &gt;6/10 sur un exo → passe au suivant.</div>`;
+}
+function rstP(){['p1','p2','p3','p4','p5'].forEach(g=>{delete SEL[g];document.querySelectorAll(`#${g} .opt`).forEach(o=>o.classList.remove('sg','so','sr','sb'));});const r=document.getElementById('rp2');r.style.display='none';r.className='result';}
+
+// ══════════════════════════════════════════════════════
+// RENFO CHECKS
+// ══════════════════════════════════════════════════════
+function tR(id){rSt[id]=!rSt[id];document.getElementById(id).classList.toggle('done',rSt[id]);document.getElementById(id+'c').textContent=rSt[id]?'✅':'⬜';const d=Object.values(rSt).filter(Boolean).length;document.getElementById('rp').style.width=`${d/3*100}%`;document.getElementById('rc').textContent=`${d} / 3 exercices`;document.getElementById('rdm').style.display=d===3?'block':'none';saveState();}
+function tP(id){pSt[id]=!pSt[id];document.getElementById(id).classList.toggle('done',pSt[id]);document.getElementById(id+'c').textContent=pSt[id]?'✅':'⬜';const d=Object.values(pSt).filter(Boolean).length;document.getElementById('pp').style.width=`${d/6*100}%`;document.getElementById('pc').textContent=`${d} / 6`;saveState();}
+
+function saveRenfoQuot(){
+  const done=Object.values(rSt).filter(Boolean).length;
+  const exos=['Iso mollet','Short foot','Tibial post'];
+  const doneExos=['r1','r2','r3'].filter(k=>rSt[k]).map((k,i)=>exos[['r1','r2','r3'].indexOf(k)]).join(', ')||'aucun';
+  const e=getJ();
+  e.unshift({date:new Date().toISOString().split('T')[0],mat:0,ech:0,eff:0,apr:0,typ:'Renfo quotidien',not:`Exos: ${doneExos} (${done}/3)`,lv:'renfo',isRenfo:true});
+  saveJD(e);renderJ();
+  document.getElementById('rdm').style.display='block';
+  document.getElementById('rdm').textContent='✅ Enregistré dans le journal !';
+}
+
+function saveRenfoSpe(){
+  lastP=new Date();
+  const exos=['Short foot one leg','One leg calf raises','Bent knee calf raises','Tibial post','Double tap jump','Skips A'];
+  const keys=['pe1','pe2','pe3','pe4','pe5','pe6'];
+  const done=keys.filter(k=>pSt[k]);
+  const doneStr=done.map((k,i)=>exos[keys.indexOf(k)]).join(', ')||'aucun';
+  const e=getJ();
+  e.unshift({date:new Date().toISOString().split('T')[0],mat:0,ech:0,eff:0,apr:0,typ:'Renfo spé',not:`Exos (${done.length}/6): ${doneStr}`,lv:'renfo',isRenfo:true,isSpe:true});
+  saveJD(e);renderJ();updNext();loadState();saveState();
+  document.getElementById('psaved').style.display='block';
+  setTimeout(()=>document.getElementById('psaved').style.display='none',3000);
+}
+
+function tSp(id){
+  spSt[id]=!spSt[id];
+  document.getElementById(id).classList.toggle('done',spSt[id]);
+  document.getElementById(id+'c').textContent=spSt[id]?'✅':'⬜';
+  const d=Object.values(spSt).filter(Boolean).length;
+  document.getElementById('spp').style.width=`${d/7*100}%`;
+  document.getElementById('sppc').textContent=`${d} / 7`;
+  saveState();
+}
+function saveSpartan(){
+  const done=Object.keys(spSt).filter(k=>spSt[k]);
+  const labels={sp1:'Mur',sp2:'Corde',sp3:'Farmer',sp4:'Bear crawl',sp5:'Monkey bars',sp6:'Step-back burpee',sp7:'Burpee complet'};
+  const doneStr=done.map(k=>labels[k]).join(', ')||'aucun';
+  const e=getJ();
+  e.unshift({date:new Date().toISOString().split('T')[0],mat:0,ech:0,eff:0,apr:0,typ:'Spartan',not:`Exos (${done.length}/7): ${doneStr}`,lv:'renfo',isRenfo:true,isSpartan:true});
+  saveJD(e);renderJ();
+  document.getElementById('sp-saved').style.display='block';
+  setTimeout(()=>document.getElementById('sp-saved').style.display='none',3000);
+}
+function updNext(){
+  const el=document.getElementById('pnext');
+  if(!lastP){el.textContent='Enregistre une séance pour calculer la prochaine.';return;}
+  const nx=new Date(lastP);nx.setDate(nx.getDate()+2);
+  const diff=Math.ceil((nx-new Date())/864e5);
+  el.innerHTML=diff<=0?`<span class="badge badge-g">✅ Renfo spé dispo aujourd'hui !</span>`:`<span class="badge badge-o">Dans ${diff} jour${diff>1?'s':''} — ${nx.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</span>`;
+}
+function rstPI(){Object.keys(pSt).forEach(k=>{pSt[k]=false;document.getElementById(k).classList.remove('done');document.getElementById(k+'c').textContent='⬜';});document.getElementById('pp').style.width='0%';document.getElementById('pc').textContent='0 / 6';saveState();}
+
+// ══════════════════════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════════════════════
+function getJ(){try{const d=localStorage.getItem(JK);return d?JSON.parse(d):defJ();}catch{return defJ();}}
+function defJ(){return [{date:'2026-03-03',mat:2,ech:4,eff:6,apr:2,typ:'Fractionné / Seuil',not:'Gêne légère à la marche. Douleur dès l\'échauffement. 5×400m — 6/10 bord interne. Diminue à la déconcentration. Irritation chronique persistante.',lv:'o'}];}
+function saveJD(e){try{localStorage.setItem(JK,JSON.stringify(e));}catch{}}
+// ── Sauvegarde état global (coches renfo, date dernière spé)
+const SK='periostite_state_v10';
+function saveState(){
+  try{
+    localStorage.setItem(SK,JSON.stringify({
+      day:new Date().toISOString().split('T')[0],
+      rSt,pSt,spSt,
+      lastP:lastP?lastP.toISOString():null
+    }));
+    // Reset coches si nouveau jour
+    const today=new Date().toISOString().split('T')[0];
+    const lastDay=s.day||'';
+    if(lastDay!==today){
+      Object.keys(rSt).forEach(k=>rSt[k]=false);
+      Object.keys(pSt).forEach(k=>pSt[k]=false);
+      Object.keys(spSt).forEach(k=>spSt[k]=false);
+      // Ne pas appliquer les coches si c'est un autre jour
+      return;
+    }
+  }catch{}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(SK);
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s.rSt){Object.assign(rSt,s.rSt);['r1','r2','r3'].forEach(k=>{if(rSt[k]){document.getElementById(k)?.classList.add('done');if(document.getElementById(k+'c'))document.getElementById(k+'c').textContent='✅';}});}
+    if(s.pSt){Object.assign(pSt,s.pSt);['pe1','pe2','pe3','pe4','pe5','pe6'].forEach(k=>{if(pSt[k]){document.getElementById(k)?.classList.add('done');if(document.getElementById(k+'c'))document.getElementById(k+'c').textContent='✅';}});}
+    if(s.spSt){Object.assign(spSt,s.spSt);Object.keys(spSt).forEach(k=>{if(spSt[k]){document.getElementById(k)?.classList.add('done');if(document.getElementById(k+'c'))document.getElementById(k+'c').textContent='✅';}});}
+    if(s.lastP)lastP=new Date(s.lastP);
+    // Màj barres de progression
+    const rd=Object.values(rSt).filter(Boolean).length;
+    if(document.getElementById('rp'))document.getElementById('rp').style.width=`${rd/3*100}%`;
+    if(document.getElementById('rc'))document.getElementById('rc').textContent=`${rd} / 3 exercices`;
+    if(rd===3&&document.getElementById('rdm'))document.getElementById('rdm').style.display='block';
+    const pd=Object.values(pSt).filter(Boolean).length;
+    if(document.getElementById('pp'))document.getElementById('pp').style.width=`${pd/6*100}%`;
+    if(document.getElementById('pc'))document.getElementById('pc').textContent=`${pd} / 6`;
+    const sd=Object.values(spSt).filter(Boolean).length;
+    if(document.getElementById('spp'))document.getElementById('spp').style.width=`${sd/7*100}%`;
+    if(document.getElementById('sppc'))document.getElementById('sppc').textContent=`${sd} / 7`;
+  }catch{}
+}
+
+function onTypChange(){
+  const typ=document.getElementById('jtyp').value;
+  const efEl=document.getElementById('pain-fields-effort');
+  if(efEl)efEl.style.display=(typ==='Repos')?'none':'block';
+  // pré-remplir mat depuis dernière entrée non-renfo du même jour
+  const date=document.getElementById('jdate').value;
+  if(date){
+    const last=getJ().find(e=>e.date===date&&!e.isRenfo&&e.typ!=='Muscu'&&e.typ!=='Spartan');
+    if(last)setSliderVal('mat',last.mat||0);
+  }
+}
+function onEditTypChange(){
+  const typ=document.getElementById('e-jtyp').value;
+  const efEl=document.getElementById('e-pain-fields-effort');
+  if(efEl)efEl.style.display=(typ==='Repos')?'none':'block';
+}
+function submitJ(){
+  const date=document.getElementById('jdate').value;if(!date){alert('Indique une date');return;}
+  const typ=document.getElementById('jtyp').value;
+  const isRepos=(typ==='Repos');
+  const mat=sliderVals.mat;
+  const ech=isRepos?0:sliderVals.ech;
+  const eff=isRepos?0:sliderVals.eff;
+  const apr=isRepos?0:sliderVals.apr;
+  const not=document.getElementById('jnot').value;
+  const lv=isRepos?(mat>=6?'r':mat>=3?'o':'g'):(mat>=6||eff>=8?'r':mat>=3||eff>=4?'o':'g');
+  const e=getJ();e.unshift({date,mat,ech,eff,apr,typ,not,lv,isRepos});saveJD(e);renderJ();
+  document.getElementById('jnot').value='';
+  ['mat','ech','eff','apr'].forEach(k=>{setSliderVal(k,0);});
+}
+
+function renderJ(){
+  const e=getJ(),c=document.getElementById('jlist');
+  if(!e.length){c.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Aucune entrée.</p>';return;}
+  c.innerHTML=e.map((en,i)=>{
+    const d=new Date(en.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
+    const isRenfo=en.isRenfo||en.typ==='Renfo quotidien'||en.typ==='Renfo spé'||en.typ==='Muscu'||en.typ==='Spartan';
+    const isMuscu=en.typ==='Muscu';const isSpartan=en.isSpartan||en.typ==='Spartan';
+    const lvClass=isMuscu?'lv-muscu':isSpartan?'lv-renfo':isRenfo?'lv-renfo':en.lv==='g'?'lv-g':en.lv==='o'?'lv-o':en.lv==='r'?'lv-r':'';
+    const lvTag=isMuscu?'<span class="tag tag-muscu">🏋️ Muscu</span>':isSpartan?'<span class="tag tag-p">🔥 Spartan</span>':isRenfo?`<span class="tag tag-p">${en.isSpe?'🦵 Renfo spé':'💪 Renfo quot.'}</span>`:
+      en.lv==='g'?'<span class="tag tag-g">🟢 Calme</span>':en.lv==='o'?'<span class="tag tag-o">🟡 Vigilance</span>':'<span class="tag tag-r">🔴 Surcharge</span>';
+    const sm=sFor(en.mat),se=sFor(en.eff),sa=sFor(en.apr||0);
+    const isRepos=en.isRepos||en.typ==='Repos';
+    const fv=v=>(+v||0).toFixed(2);
+    let painLine='';
+    if(!isRenfo){
+      if(isRepos){
+        painLine=`<strong>Matin:</strong> <span class="${sm.cc}">${fv(en.mat)}/10 — ${sm.adj}</span><br>`;
+      } else {
+        painLine=`<strong>Matin:</strong> <span class="${sm.cc}">${fv(en.mat)}/10 ${sm.adj}</span> · <strong>Effort:</strong> <span class="${se.cc}">${fv(en.eff)}/10 ${se.adj}</span> · <strong>Après:</strong> <span class="${sa.cc}">${fv(en.apr||0)}/10</span><br>`;
+      }
+    }
+    return `<div class="je-wrap" data-idx="${i}">
+      <div class="je-edit-bg"><span>✏️</span><small>Modifier</small></div>
+      <div class="je-del-bg"><span>🗑</span><small>Suppr.</small></div>
+      <div class="je ${lvClass}">
+        <div class="je-head"><div class="je-date">${d}</div><span class="tag tag-b" style="font-size:.64rem">${en.typ}</span></div>
+        <div class="je-body">${painLine}${en.not?`<em style="color:var(--muted);font-size:.74rem">${en.not}</em>`:''}</div>
+        <div class="je-tags">${lvTag}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.je-wrap').forEach(el=>initSwipe(el));
+}
+
+// ══════════════════════════════════════════════════════
+// SWIPE (left=delete, right=edit)
+// ══════════════════════════════════════════════════════
+function initSwipe(wrap){
+  const inner=wrap.querySelector('.je');
+  let sx=0,cx=0,state='idle'; // idle | swiped-left | swiped-right
+  const reset=()=>{inner.style.transform='';inner.classList.remove('swiped-left','swiped-right');state='idle';};
+  wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;cx=sx;},{passive:true});
+  wrap.addEventListener('touchmove',e=>{
+    cx=e.touches[0].clientX;const dx=cx-sx;
+    if(Math.abs(dx)<6)return;
+    e.preventDefault();
+    if(state==='idle'){
+      if(dx<0)inner.style.transform=`translateX(${Math.max(-90,dx)}px)`;
+      if(dx>0)inner.style.transform=`translateX(${Math.min(90,dx)}px)`;
+    } else if(state==='swiped-left'&&dx>0){
+      inner.style.transform=`translateX(${Math.min(0,-90+dx)}px)`;
+    } else if(state==='swiped-right'&&dx<0){
+      inner.style.transform=`translateX(${Math.max(0,90+dx)}px)`;
+    }
+  },{passive:false});
+  wrap.addEventListener('touchend',()=>{
+    const dx=cx-sx;
+    inner.style.transform='';
+    if(state==='idle'){
+      if(dx<-50){inner.classList.add('swiped-left');state='swiped-left';}
+      else if(dx>50){inner.classList.add('swiped-right');state='swiped-right';}
+    } else if(state==='swiped-left'){
+      if(dx>40)reset();
+      else if(dx<-30){const idx=+wrap.dataset.idx;reset();showDelModal(idx);}
+    } else if(state==='swiped-right'){
+      if(dx<-40)reset();
+      else if(dx>30){const idx=+wrap.dataset.idx;reset();openEdit(idx);}
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// EDIT
+// ══════════════════════════════════════════════════════
+function openEdit(idx){
+  editIdx=idx;
+  const e=getJ()[idx];
+  document.getElementById('e-jdate').value=e.date;
+  document.getElementById('e-jtyp').value=e.typ;
+  document.getElementById('e-jnot').value=e.not||'';
+  setSliderVal('e-mat',e.mat||0);
+  setSliderVal('e-ech',e.ech||0);
+  setSliderVal('e-eff',e.eff||0);
+  setSliderVal('e-apr',e.apr||0);
+  // masquer fields effort si Repos
+  const efEl=document.getElementById('e-pain-fields-effort');
+  if(efEl)efEl.style.display=(e.typ==='Repos')?'none':'block';
+  document.getElementById('sheet-ov').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+function saveEdit(){
+  if(editIdx===null)return;
+  const e=getJ();
+  const typ=document.getElementById('e-jtyp').value;
+  const isRepos=(typ==='Repos');
+  const mat=sliderVals['e-mat'];
+  const ech=isRepos?0:sliderVals['e-ech'];
+  const eff=isRepos?0:sliderVals['e-eff'];
+  const apr=isRepos?0:sliderVals['e-apr'];
+  const lv=isRepos?(mat>=6?'r':mat>=3?'o':'g'):(mat>=6||eff>=8?'r':mat>=3||eff>=4?'o':'g');
+  e[editIdx]={...e[editIdx],date:document.getElementById('e-jdate').value,typ,mat,ech,eff,apr,not:document.getElementById('e-jnot').value,lv,isRepos};
+  saveJD(e);renderJ();closeSheet();
+}
+function closeSheet(){document.getElementById('sheet-ov').classList.remove('open');document.getElementById('sheet').classList.remove('open');editIdx=null;}
+function cancelEdit(){closeSheet();}
+
+// ══════════════════════════════════════════════════════
+// DELETE MODAL
+// ══════════════════════════════════════════════════════
+function showDelModal(idx){
+  pendingDelIdx=idx;
+  const e=getJ()[idx];
+  const d=new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('modal-title').textContent='Supprimer cette entrée ?';
+  document.getElementById('modal-msg').textContent=`${d} — ${e.typ}`;
+  document.getElementById('modal-ok').onclick=()=>{const arr=getJ();arr.splice(pendingDelIdx,1);saveJD(arr);renderJ();renderManage();closeModal();};
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');pendingDelIdx=null;document.querySelectorAll('.je').forEach(el=>el.classList.remove('swiped-left','swiped-right'));}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+
+// ══════════════════════════════════════════════════════
+// MATH
+// ══════════════════════════════════════════════════════
+function linReg(pts){
+  const n=pts.length;if(n<2)return{slope:0,predict:i=>pts[0]||0};
+  const sx=pts.reduce((a,_,i)=>a+i,0),sy=pts.reduce((a,v)=>a+v,0);
+  const sxx=pts.reduce((a,_,i)=>a+i*i,0),sxy=pts.reduce((a,v,i)=>a+i*v,0);
+  const den=n*sxx-sx*sx||1;const m=(n*sxy-sx*sy)/den;const b=(sy-m*sx)/n;
+  return{slope:m,predict:i=>+(m*i+b).toFixed(3)};
+}
+
+function computeScore(entries){
+  const valid=entries.filter(e=>!e.isRenfo);
+  if(valid.length<2)return null;
+  const r=valid.slice(0,10);
+  const matin=r.map(e=>e.mat);
+  const efEntries=r.filter(e=>!e.isRepos);
+  const effort=efEntries.length?efEntries.map(e=>e.eff):[0];
+  const apr=efEntries.length?efEntries.map(e=>e.apr||0):[0];
+  const regM=linReg([...matin].reverse()),regE=linReg([...effort].reverse());
+  const avgM3=matin.slice(0,3).reduce((a,v)=>a+v,0)/Math.min(3,matin.length);
+  const ef5=efEntries.slice(0,5),af3=efEntries.slice(0,3);
+  const avgE5=ef5.length?ef5.reduce((a,e)=>a+e.eff,0)/ef5.length:0;
+  const avgA3=af3.length?af3.reduce((a,e)=>a+(e.apr||0),0)/af3.length:0;
+  const mean=effort.reduce((a,v)=>a+v,0)/effort.length;
+  const vari=Math.sqrt(effort.reduce((a,v)=>a+(v-mean)**2,0)/effort.length);
+  // Normalisation EVA /10 — courbe puissance 0.65 → sensible en zone basse
+  const amp=v=>Math.pow(Math.max(0,v)/10,0.65)*10;
+  const slopeRaw=(regM.slope+regE.slope); // positif = monte = mauvais
+  const slopeF=Math.max(0,Math.min(10,slopeRaw*4+5)); // centré sur 5, sensible
+  const reposF=amp(avgM3);
+  const effortF=amp(avgE5);
+  const aprF=amp(avgA3);
+  const varF=Math.min(10,vari*4);
+  // Pondérations équilibrées (inspirées monitoring NRS/VISA-A, Moen 2012, Winters 2018) :
+  // effort à l'activité 28% | douleur matin (repos) 25% | récupération post-effort 25%
+  // tendance longitudinale 14% | variabilité inter-séances 8%
+  const score=effortF*.28+reposF*.25+aprF*.25+slopeF*.14+varF*.08;
+  return{score:Math.round(Math.min(10,Math.max(0,score))*10)/10,slopeMat:regM.slope,slopeEff:regE.slope,avgM3,avgE5,avgA3,vari:+vari.toFixed(2)};
+}
+
+// ══════════════════════════════════════════════════════
+// GAUGE
+// ══════════════════════════════════════════════════════
+function renderGauge(){
+  const entries=getJ();
+  const res=computeScore(entries);
+  const needle=document.getElementById('gauge-needle-g');
+  const scoreEl=document.getElementById('gauge-score');
+  const labelEl=document.getElementById('gauge-label');
+  const detail=document.getElementById('risk-detail');
+
+  if(!res){
+    needle.style.transform='rotate(-90deg)';
+    scoreEl.textContent='—';labelEl.textContent='Pas assez de données';
+    detail.innerHTML='';return;
+  }
+  // Map score 0-10 → angle -90° to +90°
+  const angle=-90+(res.score/10)*180;
+  needle.style.transform=`rotate(${angle}deg)`;
+  scoreEl.textContent=res.score;
+
+  // 5 zones de vigilance progressives
+  let color,lbl;
+  if(res.score<1.5){color='#22d17a';lbl='✅ Tissu calme';}
+  else if(res.score<3.5){color='#a3e635';lbl='⚠️ Attention';}
+  else if(res.score<5.5){color='#ff8c42';lbl='🟡 Vigilance';}
+  else if(res.score<7.5){color='#ff5500';lbl='🟠 Surcharge';}
+  else{color='#ff2020';lbl='🔴 Danger';}
+  scoreEl.setAttribute('fill',color);
+  labelEl.textContent=lbl;
+  labelEl.setAttribute('fill',color);
+
+  const tM=res.slopeMat<-0.05?'📉':res.slopeMat>0.05?'📈':'➡️';
+  const tE=res.slopeEff<-0.05?'📉':res.slopeEff>0.05?'📈':'➡️';
+  detail.innerHTML=`
+    <div class="risk-item"><div class="risk-item-label">Repos 3j moy</div><div class="risk-item-val" style="color:${res.avgM3<1?'var(--green)':res.avgM3<3?'#a3e635':res.avgM3<6?'var(--orange)':'var(--red)'}">${res.avgM3.toFixed(2)}<span style="font-size:.7rem;font-weight:500;color:var(--muted)">/10</span></div></div>
+    <div class="risk-item"><div class="risk-item-label">Effort 5j moy</div><div class="risk-item-val" style="color:${res.avgE5<1?'var(--green)':res.avgE5<3?'#a3e635':res.avgE5<6?'var(--orange)':'var(--red)'}">${res.avgE5.toFixed(2)}<span style="font-size:.7rem;font-weight:500;color:var(--muted)">/10</span></div></div>
+    <div class="risk-item"><div class="risk-item-label">Après 3j moy</div><div class="risk-item-val" style="color:${res.avgA3<1?'var(--green)':res.avgA3<3?'#a3e635':res.avgA3<6?'var(--orange)':'var(--red)'}">${res.avgA3.toFixed(2)}<span style="font-size:.7rem;font-weight:500;color:var(--muted)">/10</span></div></div>
+    <div class="risk-item"><div class="risk-item-label">Tendance</div><div class="risk-item-val">${tE} effort ${res.slopeEff>0.05?'↑ monte':res.slopeEff<-0.05?'↓ descend':'→ stable'}</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════════════════
+function renderChart(){
+  const entries=[...getJ()].filter(e=>!e.isRenfo).reverse().slice(-20);
+  if(!entries.length)return;
+  const labels=entries.map(e=>new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}));
+  const mat=entries.map(e=>e.mat);
+  const ech=entries.map(e=>e.isRepos?null:e.ech);
+  const eff=entries.map(e=>e.isRepos?null:e.eff);
+  const aprD=entries.map(e=>e.isRepos?null:(e.apr||0));
+  const effForReg=entries.filter(e=>!e.isRepos).map(e=>e.eff);
+  const regM=linReg(mat),regE=linReg(effForReg.length?effForReg:[0]);
+  const ctx=document.getElementById('painChart').getContext('2d');
+  if(chartInst)chartInst.destroy();
+  chartInst=new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'Matin',data:mat,borderColor:'#f97316',tension:.35,pointRadius:3,pointBackgroundColor:'#f97316',fill:false,borderWidth:2},
+    {label:'Éch.',data:ech,borderColor:'#60a5fa',tension:.35,pointRadius:3,pointBackgroundColor:'#60a5fa',fill:false,borderWidth:2,spanGaps:false},
+    {label:'Effort',data:eff,borderColor:'#a78bfa',tension:.35,pointRadius:3,pointBackgroundColor:'#a78bfa',fill:false,borderWidth:2,spanGaps:false},
+    {label:'Après',data:aprD,borderColor:'#34d399',tension:.35,pointRadius:3,pointBackgroundColor:'#34d399',fill:false,borderWidth:2,spanGaps:false},
+    {label:'↗ repos',data:mat.map((_,i)=>regM.predict(i)),borderColor:'#f97316',borderDash:[4,4],pointRadius:0,fill:false,borderWidth:1.5,tension:0},
+    {label:'↗ effort',data:mat.map((_,i)=>regE.predict(i)),borderColor:'#a78bfa',borderDash:[4,4],pointRadius:0,fill:false,borderWidth:1.5,tension:0},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#13213a',titleColor:'#4da6ff',bodyColor:'#dce8f5',borderColor:'#1a3050',borderWidth:1,padding:10,callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}/10`}}},scales:{x:{ticks:{color:'#4a6a8a',font:{size:9},maxRotation:45},grid:{color:'#111e33'}},y:{min:0,max:10,ticks:{color:'#4a6a8a',font:{size:10},stepSize:2,callback:v=>`${v}/10`},grid:{color:'#1a3050'}}}}});
+}
+
+function renderStats(){
+  const e=getJ().filter(x=>!x.isRenfo);if(!e.length){document.getElementById('stats').textContent='Aucune donnée.';return;}
+  const avg=arr=>(arr.reduce((a,v)=>a+v,0)/arr.length).toFixed(1);
+  const g=e.filter(x=>x.lv==='g').length,o=e.filter(x=>x.lv==='o').length,r=e.filter(x=>x.lv==='r').length;
+  document.getElementById('stats').innerHTML=`<strong>Entrées :</strong> ${e.length}<br><strong>Matin moy :</strong> ${avg(e.map(x=>x.mat))}/10<br><strong>Effort moy :</strong> ${avg(e.map(x=>x.eff))}/10<br><strong>Après moy :</strong> ${avg(e.map(x=>x.apr||0))}/10<br><strong style="color:var(--green)">🟢 Calme :</strong> ${g} · <strong style="color:var(--orange)">🟡 Vigilance :</strong> ${o} · <strong style="color:var(--red)">🔴 Surcharge :</strong> ${r}`;
+}
+
+// ══════════════════════════════════════════════════════
+// GESTION
+// ══════════════════════════════════════════════════════
+function renderManage(){
+  const e=getJ(),c=document.getElementById('manage-list'),empty=document.getElementById('manage-empty');
+  if(!e.length){c.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  c.innerHTML=e.map((en,i)=>{
+    const d=new Date(en.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    const isR=en.isRenfo||en.typ==='Renfo quotidien'||en.typ==='Renfo spé';
+    const sm=isR?null:sFor(en.mat);
+    return `<div class="manage-row"><div class="manage-info"><div class="manage-date">${d}</div><div class="manage-sub">${en.typ}${sm?` · M:${en.mat}/10 ${sm.adj}`:''}</div></div><div class="manage-actions"><button class="mabtn mabtn-edit" onclick="openEdit(${i})">✏️</button><button class="mabtn mabtn-del" onclick="showDelModal(${i})">🗑</button></div></div>`;
+  }).join('');
+}
+function confirmClearAll(){
+  document.getElementById('modal-title').textContent='Tout supprimer ?';
+  document.getElementById('modal-msg').textContent=`${getJ().length} entrée(s) seront effacées définitivement.`;
+  document.getElementById('modal-ok').onclick=()=>{localStorage.removeItem(JK);renderJ();renderManage();closeModal();};
+  document.getElementById('modal').classList.add('open');
+}
+function exportJ(){const blob=new Blob([JSON.stringify(getJ(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`journal_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);}
+function importJ(evt){const file=evt.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(!Array.isArray(data))throw 0;saveJD(data);renderJ();alert(`✅ ${data.length} entrées importées !`);}catch{alert('❌ Fichier invalide.');}};reader.readAsText(file);}
+
+// ── Chart.js ──
+const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';document.head.appendChild(sc);
+
+renderJ();updNext();loadState();
+</script>
+</body>
+</html>
